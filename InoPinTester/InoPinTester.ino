@@ -4,7 +4,7 @@ volatile bool interruptTriggered = false;
 volatile bool pinChangeInterruptTriggered = false;
 volatile byte pinChangeInterruptNumber = 42;
 
-enum __attribute__((packed)) mode_t{
+enum __attribute__((packed)) testMode_t{
   modeNone,
   modeDigitalRead,
   modeDigitalWrite,
@@ -23,7 +23,7 @@ void setup() {
 
 
 void loop() {
-  static mode_t mode = modeNone;
+  static testMode_t mode = modeNone;
   static byte pin = 2;
   static unsigned int interval;
   static bool interruptAttached = false;
@@ -31,7 +31,7 @@ void loop() {
 
   //handle serial input
   if (Serial.available()) {
-    const mode_t previousMode = mode;
+    const testMode_t previousMode = mode;
     const byte previousPin = pin;
     const char command = Serial.peek();
 
