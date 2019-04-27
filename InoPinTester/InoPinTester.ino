@@ -11,7 +11,9 @@ enum __attribute__((packed)) testMode_t{
   modeAnalogRead,
   modeAnalogWrite,
   modeExternalInterrupt,
+#if defined(digitalPinToPCICR)
   modePinChangeInterrupt
+#endif  //defined(digitalPinToPCICR)
 };
 
 void setup() {
@@ -27,7 +29,9 @@ void loop() {
   static byte pin = 2;
   static unsigned int interval;
   static bool interruptAttached = false;
+#if defined(digitalPinToPCICR)
   static bool pinChangeInterruptAttached = false;
+#endif  //defined(digitalPinToPCICR)
 
   //handle serial input
   if (Serial.available()) {
@@ -64,10 +68,12 @@ void loop() {
         interval = 0;
         mode = modeExternalInterrupt;
       }
+#if defined(digitalPinToPCICR)
       else if (command == 'c' || command == 'C') {
         interval = 0;
         mode = modePinChangeInterrupt;
       }
+#endif  //defined(digitalPinToPCICR)
       else if (command == 'h' || command == 'H') {
         printHelp();
         mode = modeNone;
@@ -100,6 +106,7 @@ void loop() {
 #endif
       interruptAttached = false;
 
+#if defined(digitalPinToPCICR)
 #ifdef AVR
       //disable all pin change interrupts
 #ifdef PCMSK0
@@ -130,6 +137,7 @@ void loop() {
       PCIFR = 0;
 #endif  //AVR
       pinChangeInterruptAttached = false;
+#endif  //defined(digitalPinToPCICR)
     }
   }
 
@@ -197,7 +205,7 @@ void loop() {
           interruptTriggered = false;
         }
         break;
-
+#if defined(digitalPinToPCICR)
       case modePinChangeInterrupt:
         interval = 0;
         if (!pinChangeInterruptAttached) {
@@ -209,15 +217,11 @@ void loop() {
           }
           else {
             pinMode(pin, INPUT_PULLUP);
-#ifdef AVR
             //enable pin change interrupts for the pin
             //https://playground.arduino.cc/Main/PinChangeInterrupt
             *digitalPinToPCMSK(pin) |= bit (digitalPinToPCMSKbit(pin));  // enable pin
             PCIFR  |= bit (digitalPinToPCICRbit(pin)); // clear any outstanding interrupt
             PCICR  |= bit (digitalPinToPCICRbit(pin)); // enable interrupt for the group
-#else //AVR
-            Serial.println(F("Pin change interrupt testing not implemented for this architecture"))
-#endif  //AVR
           }
         }
         if (pinChangeInterruptTriggered) {
@@ -227,6 +231,7 @@ void loop() {
           pinChangeInterruptTriggered = false;
         }
         break;
+#endif  //defined(digitalPinToPCICR)
       case modeNone:
         break;
     }
@@ -235,7 +240,11 @@ void loop() {
 
 
 void printHelp() {
+#if defined(digitalPinToPCICR)
   Serial.println(F("digital[R]ead, digital[W]rite, [a]nalogRead, analogWrite ([P]WM), External [I]nterrupt, Pin [C]hange Interrupt, [N]ext pin, [H]elp"));
+#else //defined(digitalPinToPCICR)
+  Serial.println(F("digital[R]ead, digital[W]rite, [a]nalogRead, analogWrite ([P]WM), External [I]nterrupt, [N]ext pin, [H]elp"));
+#endif  //defined(digitalPinToPCICR)
 }
 
 //function called by interrupt ISR
