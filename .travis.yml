@@ -53,11 +53,15 @@ before_install:
   - set_sketchbook_folder "$SKETCHBOOK_FOLDER"
 
   - install_ide '("1.6.5-r5" "1.6.9" "1.6.13" "1.8.5" "newest")'
+  - install_package 'arduino:samd'
+  - install_package 'arduino:megaavr'
 
 
 script:
   # build_sketch arguments: sketch name, fqbn, allow failure, IDE version/list/range
   - build_sketch "${TRAVIS_BUILD_DIR}/InoPinTester/InoPinTester.ino" "arduino:avr:nano:cpu=atmega328" "false" "oldest" "newest"
+  - build_sketch "${TRAVIS_BUILD_DIR}/InoPinTester/InoPinTester.ino" "arduino:samd:mkrzero" "false" "newest"
+  - build_sketch "${TRAVIS_BUILD_DIR}/InoPinTester/InoPinTester.ino" "arduino:megaavr:uno2018:mode=on" "false" "newest"
 
 
 after_script:
