@@ -186,7 +186,7 @@ void loop() {
         if (!interruptAttached) {
           interruptAttached = true;
 #if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMD_BETA)
-          if (g_APinDescription[pin].ulExtInt == NOT_AN_INTERRUPT)
+          if (g_APinDescription[pin].ulExtInt == NOT_AN_INTERRUPT || g_APinDescription[pin].ulExtInt == EXTERNAL_INT_NMI)
 #else //defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMD_BETA)
           if (digitalPinToInterrupt(pin) == NOT_AN_INTERRUPT)
 #endif  //defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMD_BETA)
