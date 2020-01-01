@@ -146,95 +146,107 @@ void loop() {
     timestamp = millis();
     switch (mode) {
       case modeDigitalRead:
-        pinMode(pin, INPUT_PULLUP);
+        {
+          pinMode(pin, INPUT_PULLUP);
 
-        Serial.print(F("digitalRead("));
-        Serial.print(pin);
-        Serial.print(F(") = "));
-        Serial.println(digitalRead(pin) == LOW ? F("LOW") : F("HIGH"));
+          Serial.print(F("digitalRead("));
+          Serial.print(pin);
+          Serial.print(F(") = "));
+          Serial.println(digitalRead(pin) == LOW ? F("LOW") : F("HIGH"));
+        }
         break;
       case modeDigitalWrite:
-        pinMode(pin, OUTPUT);
-        static byte state;
-        if (state == LOW) {
-          state = HIGH;
-        }
-        else {
-          state = LOW;
-        }
-        digitalWrite(pin, state);
-        break;
-      case modeAnalogRead:
-        pinMode(pin, INPUT_PULLUP);
-
-        Serial.print(F("analogRead("));
-        Serial.print(pin);
-        Serial.print(F(") = "));
-        Serial.println(analogRead(pin));
-        break;
-      case modeAnalogWrite:
-        pinMode(pin, OUTPUT);
-        static byte analogWriteLevel = 0;
-        static byte increment = 1;
-        analogWriteLevel += increment;
-        if (analogWriteLevel <= 0 || analogWriteLevel >= 255) {
-          increment = -increment;
-        }
-
-        analogWrite(pin, analogWriteLevel);
-        break;
-      case modeExternalInterrupt:
-        if (!interruptAttached) {
-          interruptAttached = true;
-#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMD_BETA)
-          if (g_APinDescription[pin].ulExtInt == NOT_AN_INTERRUPT || g_APinDescription[pin].ulExtInt == EXTERNAL_INT_NMI)
-#else //defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMD_BETA)
-          if (digitalPinToInterrupt(pin) == NOT_AN_INTERRUPT)
-#endif  //defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMD_BETA)
-          {
-            Serial.print(F("Pin "));
-            Serial.print(pin);
-            Serial.println(F(" is not an interrupt pin."));
+        {
+          pinMode(pin, OUTPUT);
+          static byte state;
+          if (state == LOW) {
+            state = HIGH;
           }
           else {
-            pinMode(pin, INPUT_PULLUP);
+            state = LOW;
+          }
+          digitalWrite(pin, state);
+        }
+        break;
+      case modeAnalogRead:
+        {
+          pinMode(pin, INPUT_PULLUP);
+
+          Serial.print(F("analogRead("));
+          Serial.print(pin);
+          Serial.print(F(") = "));
+          Serial.println(analogRead(pin));
+        }
+        break;
+      case modeAnalogWrite:
+        {
+          pinMode(pin, OUTPUT);
+          static byte analogWriteLevel = 0;
+          static byte increment = 1;
+          analogWriteLevel += increment;
+          if (analogWriteLevel <= 0 || analogWriteLevel >= 255) {
+            increment = -increment;
+          }
+
+          analogWrite(pin, analogWriteLevel);
+        }
+        break;
+      case modeExternalInterrupt:
+        {
+          if (!interruptAttached) {
+            interruptAttached = true;
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMD_BETA)
+            if (g_APinDescription[pin].ulExtInt == NOT_AN_INTERRUPT || g_APinDescription[pin].ulExtInt == EXTERNAL_INT_NMI)
+#else //defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMD_BETA)
+            if (digitalPinToInterrupt(pin) == NOT_AN_INTERRUPT)
+#endif  //defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_SAMD_BETA)
+            {
+              Serial.print(F("Pin "));
+              Serial.print(pin);
+              Serial.println(F(" is not an interrupt pin."));
+            }
+            else {
+              pinMode(pin, INPUT_PULLUP);
 #ifdef AVR
-            attachInterrupt(digitalPinToInterrupt(pin), interruptFunction, CHANGE);
+              attachInterrupt(digitalPinToInterrupt(pin), interruptFunction, CHANGE);
 #else //AVR
-            attachInterrupt(pin, interruptFunction, CHANGE);
+              attachInterrupt(pin, interruptFunction, CHANGE);
 #endif  //AVR
+              interruptTriggered = false;
+            }
+          }
+          if (interruptTriggered) {
+            Serial.println(F("Interrupt triggered."));
             interruptTriggered = false;
           }
-        }
-        if (interruptTriggered) {
-          Serial.println(F("Interrupt triggered."));
-          interruptTriggered = false;
         }
         break;
 #if defined(digitalPinToPCICR)
       case modePinChangeInterrupt:
-        interval = 0;
-        if (!pinChangeInterruptAttached) {
-          pinChangeInterruptAttached = true;
-          if (digitalPinToPCICR((int8_t)pin) == 0) {
-            Serial.print(F("Pin "));
-            Serial.print(pin);
-            Serial.println(F(" is not a pin change interrupt pin."));
+        {
+          interval = 0;
+          if (!pinChangeInterruptAttached) {
+            pinChangeInterruptAttached = true;
+            if (digitalPinToPCICR((int8_t)pin) == 0) {
+              Serial.print(F("Pin "));
+              Serial.print(pin);
+              Serial.println(F(" is not a pin change interrupt pin."));
+            }
+            else {
+              pinMode(pin, INPUT_PULLUP);
+              //enable pin change interrupts for the pin
+              //https://playground.arduino.cc/Main/PinChangeInterrupt
+              *digitalPinToPCMSK(pin) |= bit (digitalPinToPCMSKbit(pin));  // enable pin
+              PCIFR  |= bit (digitalPinToPCICRbit(pin)); // clear any outstanding interrupt
+              PCICR  |= bit (digitalPinToPCICRbit(pin)); // enable interrupt for the group
+            }
           }
-          else {
-            pinMode(pin, INPUT_PULLUP);
-            //enable pin change interrupts for the pin
-            //https://playground.arduino.cc/Main/PinChangeInterrupt
-            *digitalPinToPCMSK(pin) |= bit (digitalPinToPCMSKbit(pin));  // enable pin
-            PCIFR  |= bit (digitalPinToPCICRbit(pin)); // clear any outstanding interrupt
-            PCICR  |= bit (digitalPinToPCICRbit(pin)); // enable interrupt for the group
+          if (pinChangeInterruptTriggered) {
+            Serial.print(F("Pin change interrupt number "));
+            Serial.print(pinChangeInterruptNumber);
+            Serial.println(F(" triggered."));
+            pinChangeInterruptTriggered = false;
           }
-        }
-        if (pinChangeInterruptTriggered) {
-          Serial.print(F("Pin change interrupt number "));
-          Serial.print(pinChangeInterruptNumber);
-          Serial.println(F(" triggered."));
-          pinChangeInterruptTriggered = false;
         }
         break;
 #endif  //defined(digitalPinToPCICR)
