@@ -174,13 +174,14 @@ void loop() {
         break;
       case modeAnalogWrite:
         pinMode(pin, OUTPUT);
+        static byte analogWriteLevel = 0;
         static byte increment = 1;
-        state += increment;
-        if (state <= 0 || state >= 255) {
+        analogWriteLevel += increment;
+        if (analogWriteLevel <= 0 || analogWriteLevel >= 255) {
           increment = -increment;
         }
 
-        analogWrite(pin, state);
+        analogWrite(pin, analogWriteLevel);
         break;
       case modeExternalInterrupt:
         if (!interruptAttached) {
