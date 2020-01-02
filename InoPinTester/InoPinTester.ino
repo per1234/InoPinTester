@@ -87,6 +87,11 @@ void loop() {
       }
     }
 
+    if (command != 'h' && command != 'H') {
+      Serial.print(F("Pin: "));
+      Serial.println(pin);
+    }
+
     //clear the Serial input buffer
     while (Serial.available()) {
       Serial.read();
@@ -94,8 +99,6 @@ void loop() {
 
     if (pin != previousPin) {
       pinMode(previousPin, INPUT);  //return previous pin to the safest state
-      Serial.print(F("Pin: "));
-      Serial.println(pin);
     }
 
     if (pin != previousPin || mode != previousMode) {
