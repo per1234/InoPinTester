@@ -14,6 +14,7 @@ InoPinTester
 - Select **No line ending** from the menu in the lower right of the Serial Monitor window.
 - Select **9600 baud** in the menu in the lower right of the Serial Monitor window.
 - Commands will be listed in the Serial Monitor. Commands can be sent via the text input box at the top of the Serial Monitor. In addition, you can enter pin numbers.
+  - NOTE: If you are using a board that doesn't have native USB and doesn't reset when Serial Monitor is opened (e.g., Nano Every), you will not see the command menu. Type `h` in the Serial Monitor input box and press Enter to display the menu.
 
 
 #### Contributing
