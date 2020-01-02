@@ -20,6 +20,7 @@ void setup() {
   Serial.begin(9600);
   Serial.setTimeout(100);
   while (!Serial) {}  //on boards w/ native USB, wait until Serial Monitor is opened before printing the command list
+  delay(100); //a delay is needed for the menu to appear after opening Serial Monitor when using the Nano 33 BLE boards
   printHelp();
 }
 
